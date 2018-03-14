@@ -15,10 +15,25 @@ func main() {
 	var useWhitelist bool
 	var sharpen float64
 
+	var cropTop int
+	var cropBottom int
+	var cropLeft int
+	var cropRight int
+
+	var cropAll int
+
 	flag.StringVar(&sourceImagePath, "image", "", "path to image")
 	flag.StringVar(&config, "config", "", "path to config")
 	flag.BoolVar(&useWhitelist, "use-whitelist", false, "true|false to enable|disable usage of the hard-coded whitelist")
 	flag.Float64Var(&sharpen, "sharpen", 0, "sigma value (float) for sharpening")
+
+	flag.IntVar(&cropTop, "crop-top", 0, "")
+	flag.IntVar(&cropBottom, "crop-bottom", 0, "")
+	flag.IntVar(&cropLeft, "crop-left", 0, "")
+	flag.IntVar(&cropRight, "crop-right", 0, "")
+
+	flag.IntVar(&cropAll, "crop-all", 0, "")
+
 	flag.Parse()
 
 	client := gosseract.NewClient()
@@ -33,6 +48,27 @@ func main() {
 
 	if sharpen > 0 {
 		image = imaging.Sharpen(image, sharpen)
+	}
+
+	{
+		width := image.Bounds().Max.X
+		height := image.Bounds().Max.Y
+
+		if cropAll > 0 {
+			width = width - (cropAll * 2)
+			height = height - (cropAll * 2)
+
+			image = imaging.CropCenter(image, width, height)
+		} else {
+
+			/*
+				rectangle := image.Rectangle
+
+				if cropTop {
+					imaging.Crop
+				}*/
+
+		}
 	}
 
 	err = imaging.Save(image, preparedImagePath)
