@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image"
 
 	"github.com/disintegration/imaging"
 	"github.com/otiai10/gosseract"
@@ -41,37 +42,36 @@ func main() {
 
 	preparedImagePath := "./out/prepared.tiff"
 
-	image, err := imaging.Open(sourceImagePath)
+	img, err := imaging.Open(sourceImagePath)
 	if err != nil {
 		panic(err)
 	}
 
 	if sharpen > 0 {
-		image = imaging.Sharpen(image, sharpen)
+		img = imaging.Sharpen(img, sharpen)
 	}
 
-	{
-		width := image.Bounds().Max.X
-		height := image.Bounds().Max.Y
-
+	cropper := func(c int) int {
 		if cropAll > 0 {
-			width = width - (cropAll * 2)
-			height = height - (cropAll * 2)
-
-			image = imaging.CropCenter(image, width, height)
-		} else {
-
-			/*
-				rectangle := image.Rectangle
-
-				if cropTop {
-					imaging.Crop
-				}*/
-
+			return cropAll
+		} else if c > 0 {
+			return c
 		}
+		return 0
 	}
 
-	err = imaging.Save(image, preparedImagePath)
+	img = imaging.Crop(img, image.Rectangle{
+		image.Point{
+			X: cropper(cropLeft),
+			Y: -cropper(cropTop),
+		},
+		image.Point{
+			X: img.Bounds().Dx() - cropper(cropRight),
+			Y: img.Bounds().Dy() + cropper(cropBottom),
+		},
+	})
+
+	err = imaging.Save(img, preparedImagePath)
 	if err != nil {
 		panic(err)
 	}
