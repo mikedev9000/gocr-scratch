@@ -47,10 +47,6 @@ func main() {
 		panic(err)
 	}
 
-	if sharpen > 0 {
-		img = imaging.Sharpen(img, sharpen)
-	}
-
 	cropper := func(c int) int {
 		if cropAll > 0 {
 			return cropAll
@@ -70,6 +66,10 @@ func main() {
 			Y: img.Bounds().Dy() + cropper(cropBottom),
 		},
 	})
+
+	if sharpen > 0 {
+		img = imaging.Sharpen(img, sharpen)
+	}
 
 	err = imaging.Save(img, preparedImagePath)
 	if err != nil {
